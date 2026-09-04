@@ -54,6 +54,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: develop_snapshot-${{github.sha}}
-        path: |
-          ${{ steps.sign_app.outputs.signedReleaseFile }}
-          Snapcast/build/outputs/apk/release/*.apk
+        path: Snapcast/build/outputs/apk/release/*.apk
