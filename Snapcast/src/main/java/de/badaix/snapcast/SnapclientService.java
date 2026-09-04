@@ -32,7 +32,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.AudioManager;
-import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
@@ -207,16 +206,10 @@ public class SnapclientService extends Service {
 
     private void startProcess() throws IOException {
         Log.d(TAG, "startProcess");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Ask the framework to use MPTCP for seamless WiFi <-> mobile
-            // handover of the native snapclient sockets (Android 11+).
-            // Reset to the default preference when MPTCP is disabled.
-            ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-            int multipathPreference = Settings.getInstance(getApplicationContext()).isMptcp()
-                    ? ConnectivityManager.MULTIPATH_PREFERENCE_HANDOVER
-                    : ConnectivityManager.MULTIPATH_PREFERENCE_PERFORMANCE;
-            connectivityManager.setMultipathPreference(multipathPreference);
-        }
+        // Note: ConnectivityManager.setMultipathPreference is a @SystemApi and
+        // not available to regular apps. MPTCP is enabled by passing --mptcp to
+        // the native snapclient instead; it creates MPTCP sockets itself (and
+        // falls back to plain TCP if the device doesn't support it).
         String player = "oboe";
         String configuredEngine = Settings.getInstance(getApplicationContext()).getAudioEngine();
         if (configuredEngine.equals("OpenSL"))
