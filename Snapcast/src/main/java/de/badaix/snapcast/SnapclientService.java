@@ -214,7 +214,7 @@ public class SnapclientService extends Service {
             ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
             int multipathPreference = Settings.getInstance(getApplicationContext()).isMptcp()
                     ? ConnectivityManager.MULTIPATH_PREFERENCE_HANDOVER
-                    : ConnectivityManager.MULTIPATH_PREFERENCE_UNSPECIFIED;
+                    : ConnectivityManager.MULTIPATH_PREFERENCE_PERFORMANCE;
             connectivityManager.setMultipathPreference(multipathPreference);
         }
         String player = "oboe";
