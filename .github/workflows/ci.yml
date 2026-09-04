@@ -37,15 +37,12 @@ jobs:
       run: mv $GITHUB_WORKSPACE/Snapcast/build/outputs/apk/release/Snapcast-release-unsigned.apk $GITHUB_WORKSPACE/Snapcast/build/outputs/apk/release/Snapcast.apk
 
     - uses: filippoLeporati93/android-release-signer@v1
-      # Signing fails without the signing secrets (e.g. on forks) - the
-      # unsigned APK is archived either way
       if: github.event_name == 'push'
-      continue-on-error: true
       name: Sign app APK
       # ID used to access action output
       id: sign_app
       with:
-        releaseDirectory: $GITHUB_WORKSPACE/Snapcast/build/outputs/apk/release
+        releaseDirectory: ${{ github.workspace }}/Snapcast/build/outputs/apk/release
         signingKeyBase64: ${{ secrets.SIGNING_KEY }}
         alias: ${{ secrets.ALIAS }}
         keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
