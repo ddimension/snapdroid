@@ -50,6 +50,7 @@ public class ServerDialogFragment extends DialogFragment implements View.OnClick
     private EditText editStreamPort;
     private EditText editControlPort;
     private CheckBox checkBoxAutoStart;
+    private CheckBox checkBoxMptcp;
     private CheckBox checkBoxResample;
     private Spinner spinnerAudioEngine;
     private String host = "";
@@ -78,6 +79,7 @@ public class ServerDialogFragment extends DialogFragment implements View.OnClick
         editStreamPort = view.findViewById(R.id.stream_port);
         editControlPort = view.findViewById(R.id.control_port);
         checkBoxAutoStart = view.findViewById(R.id.checkBoxAutoStart);
+        checkBoxMptcp = view.findViewById(R.id.checkBoxMptcp);
 
         spinnerAudioEngine = view.findViewById(R.id.audio_engine);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
@@ -105,6 +107,7 @@ public class ServerDialogFragment extends DialogFragment implements View.OnClick
                             listener.onHostChanged(host, streamPort, controlPort);
                             listener.onAutoStartChanged(checkBoxAutoStart.isChecked());
                         }
+                        Settings.getInstance(getContext()).setMptcp(checkBoxMptcp.isChecked());
                         Settings.getInstance(getContext()).setAudioEngine(spinnerAudioEngine.getSelectedItem().toString(), checkBoxResample.isChecked());
                     }
                 })
@@ -153,6 +156,7 @@ public class ServerDialogFragment extends DialogFragment implements View.OnClick
                         editStreamPort.setText(Integer.toString(streamPort));
                         editControlPort.setText(Integer.toString(controlPort));
                         checkBoxAutoStart.setChecked(autoStart);
+                        checkBoxMptcp.setChecked(Settings.getInstance(getContext()).isMptcp());
                         for (int i = 0; i < spinnerAudioEngine.getCount(); ++i) {
                             if (spinnerAudioEngine.getItemAtPosition(i).toString().equals(Settings.getInstance(getContext()).getAudioEngine())) {
                                 spinnerAudioEngine.setSelection(i);

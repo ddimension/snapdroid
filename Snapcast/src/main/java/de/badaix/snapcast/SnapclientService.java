@@ -32,6 +32,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
@@ -46,6 +47,9 @@ import androidx.core.app.TaskStackBuilder;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -203,6 +207,16 @@ public class SnapclientService extends Service {
 
     private void startProcess() throws IOException {
         Log.d(TAG, "startProcess");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Ask the framework to use MPTCP for seamless WiFi <-> mobile
+            // handover of the native snapclient sockets (Android 11+).
+            // Reset to the default preference when MPTCP is disabled.
+            ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            int multipathPreference = Settings.getInstance(getApplicationContext()).isMptcp()
+                    ? ConnectivityManager.MULTIPATH_PREFERENCE_HANDOVER
+                    : ConnectivityManager.MULTIPATH_PREFERENCE_UNSPECIFIED;
+            connectivityManager.setMultipathPreference(multipathPreference);
+        }
         String player = "oboe";
         String configuredEngine = Settings.getInstance(getApplicationContext()).getAudioEngine();
         if (configuredEngine.equals("OpenSL"))
@@ -241,9 +255,11 @@ public class SnapclientService extends Service {
         Log.i(TAG, "Configured engine: " + configuredEngine + ", active engine: " + player + ", sampleformat: " + sampleformat);
         // Log.i(TAG, "Configured engine: " + configuredEngine + ", active engine: " + player + ", sampleformat: " + sampleformat + ", isBluetoothA2dpOn: " + bta2dp);
 
-        ProcessBuilder pb = new ProcessBuilder()
-                .command(this.getApplicationInfo().nativeLibraryDir + "/libsnapclient.so", "-h", host, "-p", Integer.toString(port), "--hostID", getUniqueId(this.getApplicationContext()), "--player", player, "--sampleformat", sampleformat, "--logfilter", "*:info,Stats:debug")
-                .redirectErrorStream(true);
+        List<String> command = new ArrayList<>(Arrays.asList(
+                this.getApplicationInfo().nativeLibraryDir + "/libsnapclient.so", "-h", host, "-p", Integer.toString(port), "--hostID", getUniqueId(this.getApplicationContext()), "--player", player, "--sampleformat", sampleformat, "--logfilter", "*:info,Stats:debug"));
+        if (Settings.getInstance(getApplicationContext()).isMptcp())
+            command.addAll(Arrays.asList("--mptcp", "true"));
+        ProcessBuilder pb = new ProcessBuilder(command).redirectErrorStream(true);
         Map<String, String> env = pb.environment();
         if (rate != null)
             env.put("SAMPLE_RATE", rate);

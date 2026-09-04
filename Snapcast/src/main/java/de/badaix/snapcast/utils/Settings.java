@@ -131,6 +131,14 @@ public class Settings {
         return true; // getBoolean("resample", true);
     }
 
+    public boolean isMptcp() {
+        return getBoolean("mptcp", false);
+    }
+
+    public void setMptcp(boolean mptcp) {
+        put("mptcp", mptcp);
+    }
+
     public void setAutostart(boolean autoStart) {
         put("autoStart", autoStart);
     }
