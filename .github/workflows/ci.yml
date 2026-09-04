@@ -5,10 +5,7 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   build:
 
-    # Runs on GitHub-hosted runners by default. To build on self-hosted
-    # runners instead, register them on this repo and set the repository
-    # variable RUNNER_LABEL to their label(s), e.g. RUNNER_LABEL=openwrt
-    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-24.04' }}
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Checkout
@@ -33,12 +30,6 @@ jobs:
         distribution: temurin
         java-version: 17
 
-    - name: Set up Android SDK (self-hosted runners)
-      if: runner.environment == 'self-hosted'
-      uses: android-actions/setup-android@v3
-      with:
-        packages: platforms;android-35 build-tools;35.0.0 ndk;27.0.12077973 cmake;3.22.1
-
     - name: Build the app
       run: ./gradlew build
 
@@ -46,7 +37,7 @@ jobs:
       run: mv $GITHUB_WORKSPACE/Snapcast/build/outputs/apk/release/Snapcast-release-unsigned.apk $GITHUB_WORKSPACE/Snapcast/build/outputs/apk/release/Snapcast.apk
 
     - uses: filippoLeporati93/android-release-signer@v1
-      # Only sign when the repository has the signing secrets configured
+      # Only sign when the repository has the signing secrets configured (forks don't)
       if: github.event_name == 'push' && secrets.SIGNING_KEY != ''
       name: Sign app APK
       # ID used to access action output
