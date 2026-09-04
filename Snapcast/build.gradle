@@ -15,7 +15,7 @@ android {
             cmake {
                 version "3.22.1"
                 cppFlags "-std=c++14"
-                arguments '-DANDROID_STL=c++_static', '-DBUILD_SERVER=OFF', '-DBUILD_TESTS=OFF'
+                arguments '-DANDROID_STL=c++_static', '-DBUILD_SERVER=OFF', '-DBUILD_TESTS=OFF', '-DBUILD_WITH_SSL=OFF'
                 abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
             }
         }
