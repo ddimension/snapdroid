@@ -5,7 +5,10 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   build:
 
-    runs-on: ubuntu-24.04
+    # Runs on GitHub-hosted runners by default. To build on self-hosted
+    # runners instead, register them on this repo and set the repository
+    # variable RUNNER_LABEL to their label(s), e.g. RUNNER_LABEL=openwrt
+    runs-on: ${{ vars.RUNNER_LABEL || 'ubuntu-24.04' }}
 
     steps:
     - name: Checkout
@@ -28,15 +31,16 @@ jobs:
       run: JAVA_HOME=$JAVA_HOME_17_X64 ./gradlew build
 
     - name: rename apk
-      run: mv /home/runner/work/snapdroid/snapdroid/Snapcast/build/outputs/apk/release/Snapcast-release-unsigned.apk /home/runner/work/snapdroid/snapdroid/Snapcast/build/outputs/apk/release/Snapcast.apk 
+      run: mv $GITHUB_WORKSPACE/Snapcast/build/outputs/apk/release/Snapcast-release-unsigned.apk $GITHUB_WORKSPACE/Snapcast/build/outputs/apk/release/Snapcast.apk
 
     - uses: filippoLeporati93/android-release-signer@v1
-      if: github.event_name == 'push'
+      # Only sign when the repository has the signing secrets configured
+      if: github.event_name == 'push' && secrets.SIGNING_KEY != ''
       name: Sign app APK
       # ID used to access action output
       id: sign_app
       with:
-        releaseDirectory: /home/runner/work/snapdroid/snapdroid/Snapcast/build/outputs/apk/release
+        releaseDirectory: $GITHUB_WORKSPACE/Snapcast/build/outputs/apk/release
         signingKeyBase64: ${{ secrets.SIGNING_KEY }}
         alias: ${{ secrets.ALIAS }}
         keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -50,4 +54,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: develop_snapshot-${{github.sha}}
-        path: ${{steps.sign_app.outputs.signedReleaseFile}}
+        path: |
+          ${{ steps.sign_app.outputs.signedReleaseFile }}
+          Snapcast/build/outputs/apk/release/*.apk
